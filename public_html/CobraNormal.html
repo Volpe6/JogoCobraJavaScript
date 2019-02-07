@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html>
+    <head>
+        <title>TODO supply a title</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style>
+            canvas {
+                border:1px solid #d3d3d3;
+                background-color: #f1f1f1;
+            }
+        </style>
+    </head>
+    <body onload="iniciarJogo()">
+        <div id="coordenadas"></div>
+       <!-- <script src="teste.js" type="text/javascript"></script>-->
+        <script src="ComponenteJogo.js" type="text/javascript"></script>
+        <script src="Controle.js" type="text/javascript"></script>
+       <!-- <script src="Colisao.js" type="text/javascript"></script>-->
+        <script src="Atualizacao.js" type="text/javascript"></script>
+        <script src="AreaJogo.js" type="text/javascript"></script>
+<!--        <--<script src="FogoCanvas.js" type="text/javascript"></script>-->-->
+        <script>
+            var areaJogo  = new AreaJogo();
+          //  var FogoCanvas = new FogoCanvas();
+            var intervalo = setInterval(updateGameArea, 50);
+            var atualizacao;
+            var controle;   
+            var pecaJogo;
+            var cauda = [];
+            var posicaoXY = [];
+            var tamanhoCauda = 10;
+            var comida;
+            var tamanhoPeca = 10;
+            
+            function iniciarJogo() {
+                areaJogo.criaAreaJogo();
+                pecaJogo = new ComponenteJogo(tamanhoPeca, tamanhoPeca, 'red'  , 10, 15, false);
+                comida   = new ComponenteJogo(5, 5, "green", 90, 30); 
+                
+                for(var i = 0; i < tamanhoCauda; i++) {
+                    cauda[i] = new ComponenteJogo(tamanhoPeca,tamanhoPeca, "red", pecaJogo.x*i, pecaJogo.y*i);
+                }
+                
+                controle    = new Controle(areaJogo, pecaJogo);
+                atualizacao = new Atualizacao(controle ,areaJogo, pecaJogo);
+               
+            }
+            
+            function updateGameArea() {
+                if(cauda[cauda.length - 1].colisao(comida)) {
+                    alimentaCobra();
+                    comida.x = Math.floor((Math.random())*395);
+                    comida.y = Math.floor((Math.random())*395);
+                    atualizaJogo();
+                } else {
+                    atualizaJogo();
+                }
+                controle.controleTeclado();
+            }
+            
+            function updatePeaceGame() {
+                atualizacao.pecaJogo(false, 0);
+                atualizacao.pecaJogo(comida);
+                desenhaCorpoCobra();
+                
+            }
+            
+            function atualizaJogo() {
+                atualizacao.areaJogo();
+                updatePeaceGame();
+                desenhaCoordenadas();
+            }
+            
+            function desenhaCorpoCobra() {
+                for(var i = 0; i < posicaoXY.length; i++) {
+                    cauda[i].x = posicaoXY[i].x*tamanhoPeca;
+                    cauda[i].y = posicaoXY[i].y*tamanhoPeca;
+                    atualizacao.pecaJogo(cauda[i], i+1);
+                    if(pecaJogo.colisaoCorpo(posicaoXY[i]) && getEstaEmMovimento()) {
+                        clearInterval(intervalo);
+                    }
+                }
+              
+                posicaoXY.push({x:pecaJogo.x, y:pecaJogo.y});
+               
+                while (posicaoXY.length > tamanhoCauda) {
+                    posicaoXY.shift();
+                }
+            }
+            
+            function alimentaCobra() {
+                cauda.push(new ComponenteJogo(tamanhoPeca,tamanhoPeca, pecaJogo.cor, pecaJogo.x, pecaJogo.y));
+                tamanhoCauda++;
+            }
+            
+            function desenhaCoordenadas() {
+                let coordenadas = document.getElementById('coordenadas');
+                coordenadas.innerHTML = 'Coordenadas Cabeça Cobra: (' + cauda[cauda.length - 1].x + ', ' + cauda[cauda.length - 1].y + ')';  
+            }
+            
+            function getEstaEmMovimento() {
+                switch(true) {
+                    case ((pecaJogo.velocidadeX > 0) || (pecaJogo.velocidadeX < 0)) :
+                        return true;
+                    break;
+                    case ((pecaJogo.velocidadeY > 0) || (pecaJogo.velocidadeY < 0)) : 
+                        return true;
+                        break;
+                    default :
+                        return false;
+                }
+            }
+            
+        </script>
+        
+    </body>
+</html>
